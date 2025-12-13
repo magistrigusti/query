@@ -8,9 +8,12 @@ export type TodoDto = {
 };
 
 export const todoListApi = {
-  getLogoList: ({signal}: {signal: AbortSignal}) => {
+  getLogoList: (
+    { page }: { page: number }, 
+    { signal }: { signal: AbortSignal }
+  ) => {
     return (
-      fetch(`${BASE_URL}/tasks`, {signal}).then(
+      fetch(`${BASE_URL}/tasks?page=${page}`, {signal}).then(
         res => res.json() as Promise<TodoDto[]>
       )
     );
