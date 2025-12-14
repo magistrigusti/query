@@ -5,9 +5,9 @@ import { useState } from 'react';
 export function TodoList() {
   const [page, setPage] = useState(1);
 
-  const { data, error, isPending } = useQuery({ 
+  const { data: todoItems, error, isPending } = useQuery({
     queryKey: ['tasks', 'list'],
-    queryFn: todoListApi.getLogoList
+    queryFn: (meta) => todoListApi.getTodoList({ page }, meta)
   });
 
   if (isPending) {
@@ -23,7 +23,7 @@ export function TodoList() {
       <h1 className="text-3xl font-bold underline mb-5">Allod List</h1>
 
       <div className="flex flex-col gap-4">
-        {data.map(todo => (
+        {todoItems.data.map(todo => (
           <div className="border border-slate-300 rounded p-3"
             key={todo.id}
           >
@@ -32,8 +32,19 @@ export function TodoList() {
         ))}
       </div>
 
-      <button>prev</button>
-      <button>next</button>
+      <div className="flex gap-2 mt-4">
+        <button className="p-3 rounded border border-teal-500"
+          onClick={() => setPage(p => Math.max(p - 1, 1))}
+        >
+          prev
+        </button>
+
+        <button className="p-3 rounded border border-teal-500"
+          onClick={() => setPage(p => Math.max(p + 1, todoItems.pages))}
+        >
+          next
+        </button>
+      </div>
     </div>
   )
 }
