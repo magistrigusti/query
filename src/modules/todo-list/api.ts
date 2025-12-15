@@ -24,7 +24,7 @@ export const todoListApi = {
   ) => {
     return (
       fetch(
-        `${BASE_URL}/tasks?page=${page}&per_page=10`, 
+        `${BASE_URL}/tasks?page=${page}&_per_page=10`, 
         {signal}
       ).then(
         res => res.json() as Promise<PaginatedResult<TodoDto>>
