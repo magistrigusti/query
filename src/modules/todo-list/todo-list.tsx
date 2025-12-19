@@ -1,74 +1,45 @@
-import { useQuery, keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
+import { useTodoList } from "./use-todo-list";
+import { useCreateTodo } from "./use-create-todo";
+import { useDeleteTodo } from "./use-delete-todo";
+import { useToggleTodo } from "./use-toggle-todo";
+import { useSuspenceUser, useUser } from "../auth/use-user";
 import { todoListApi } from "./api";
-import { useState, useRef, useCallback } from 'react';
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function TodoList() {
-  const [enabled, setEnabled] = useState(false);
-
-  const { 
-    data: todoItems, error,  isLoading, isFetchingNextPage, fetchNextPage, hasNextPage
-  } = useInfiniteQuery({
-    queryKey: ['tasks', 'list'],
-    queryFn: meta => todoListApi.getTodoList({ page: meta.pageParam }, meta),
-    enabled: enabled,
-    initialPageParam: 1,
-    getNextPageParam: (result) => result.next,
-    select: result => result.pages.flatMap(page => page.data)
+  useSuspenseQuery({
+    ...todoListApi.getTodoListQueryOptions({ userId: "3" })
+  });
+  useSuspenseQuery({
+    ...todoListApi.getTodoListQueryOptions({ userId: "2" })
   });
 
-  if (isLoading) {
-    return <div>Loading</div>
-  }
-
-  if (error) {
-    return <div>error: {JSON.stringify(error)}</div>
-  }
-
-  const cursorRef = useIntersection(() => {
-    fetchNextPage()
-  })
+  const { todoItems } = useTodoList();
+  const { data: user } = useSuspenceUser();
+  const createTodo = useCreateTodo();
+  const deleteTodo = useDeleteTodo();
+  const { toggleTodo } = useToggleTodo();
 
   return (
     <div className="p-5 mx-auto max-w-[1200px] mt-10">
-      <h1 className="text-3xl font-bold underline mb-5">Allod List</h1>
+      <h1 className="text-3xl font-bold underline md-5">
+        {" "}
+        Todo List. {user.login}
+      </h1>
 
-      <button onClick={() => setEnabled(e => !e)}>
-        {!hasNextPage && <div>not load data</div>}
-        {isFetchingNextPage && <div>...Loading</div>}
-      </button>
+      <form className="flex gap-2 mb-5" onSubmit={createTodo.hadleCreate}>
+        <input 
+          className="rounded p-2 border border-teal-500"
+          type="text"
+          name="text"
+        />
 
-      <div className="flex flex-col gap-4">
-        {todoItems?.map(todo => (
-          <div className="border border-slate-300 rounded p-3"
-            key={todo.id}
-          >
-            {todo.text}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-2 mt-4" ref={cursorRef}></div>
+        <button className="rounded p-2 border border-teal-500 disabled:opacity-50"
+          disabled={createTodo.isLoading}
+        >
+          
+        </button>
+      </form>
     </div>
-  );
-}
-
-export function useIntersection(onIntersect: () => void) {
-  const unsubscribe = useRef(() => { })
-
-  return useCallback((el: HTMLDivElement | null) => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(intersection => {
-        if (intersection.isIntersecting) {
-          onIntersect()
-        }
-      })
-    })
-
-    if (el) {
-      observer.observe(el);
-      unsubscribe.current = () => observer.disconnect()
-    } else {
-      unsubscribe.current()
-    }
-  }, [])
+  )
 }
