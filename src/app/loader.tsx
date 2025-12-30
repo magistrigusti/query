@@ -28,6 +28,6 @@ export function Loader({ children }: { children: React.ReactNode }) {
           </Suspense>
         </ErrorBoundary>
       )}
-    </QueryErrorResetBoundary>
+    </QueryErrorResetBoundary> 
   );
 }
